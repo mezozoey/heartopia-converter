@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>Kalimba Converter</title>
+<title>Heartopia Tab Converter</title>
 <style>
   body {
     font-family: system-ui, sans-serif;
@@ -41,22 +41,22 @@
 </head>
 <body>
 
-<h2>🎵 Kalimba Converter</h2>
+<h2>🎵 Heartopia Tab Converter</h2>
 
 <div class="tabs">
   <button id="tab-range" class="active" onclick="setMode('range')">
-    2 октави
+    2 octaves
   </button>
   <button id="tab-down" onclick="setMode('down')">
-    Октава вниз
+    1 octave down
   </button>
 </div>
 
 <textarea id="input" placeholder="Встав таби тут..."></textarea>
 
 <div class="actions">
-  <button onclick="convert()">Конвертувати</button>
-  <button onclick="copyResult()">Скопіювати</button>
+  <button onclick="convert()">Convert</button>
+  <button onclick="copyResult()">Copy</button>
 </div>
 
 <textarea id="output" placeholder="Результат..." readonly></textarea>
