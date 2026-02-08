@@ -3,42 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <title>Heartopia Tab Converter</title>
+
 <style>
   body {
     font-family: system-ui, sans-serif;
     background: #f6f6f6;
     padding: 20px;
+    max-width: 900px;
+    margin: auto;
   }
+
+  h2 {
+    margin-bottom: 10px;
+  }
+
   textarea {
     width: 100%;
-    min-height: 200px;
+    min-height: 220px;
     margin: 10px 0;
     font-family: monospace;
     font-size: 14px;
     padding: 10px;
+    box-sizing: border-box;
   }
+
   .tabs {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
   }
+
   .tabs button {
     padding: 8px 14px;
     cursor: pointer;
     border: none;
     background: #ddd;
+    border-radius: 6px;
   }
+
   .tabs button.active {
     background: #333;
     color: white;
   }
+
   .actions {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
   }
+
+  button {
+    padding: 8px 14px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background: #444;
+    color: white;
+  }
+
+  button:hover {
+    opacity: 0.9;
+  }
+
+  label {
+    display: block;
+    margin: 10px 0;
+  }
+
+  select {
+    padding: 6px;
+    font-size: 14px;
+  }
 </style>
 </head>
+
 <body>
 
 <h2>🎵 Heartopia Tab Converter</h2>
@@ -56,8 +94,18 @@
 
 <div class="actions">
   <button onclick="convert()">Convert</button>
-  <button onclick="copyResult()">Copy</button>
+  <button onclick="copyResult()">Copy result</button>
 </div>
+
+<label>
+  <input type="checkbox" id="kbdToggle" onchange="toggleKeyboard()">
+  Convert to computer keyboard
+</label>
+
+<select id="kbdMode" style="display:none;">
+  <option value="2oct">2 octaves (bass / lute / kalimba)</option>
+  <option value="3oct">3 octaves (piano 22key)</option>
+</select>
 
 <textarea id="output" placeholder="Result" readonly></textarea>
 
@@ -70,28 +118,43 @@ function setMode(newMode) {
   document.getElementById("tab-down").classList.toggle("active", mode === "down");
 }
 
-function convert() {
-  const input = document.getElementById("input").value;
-  let output = input;
+function toggleKeyboard() {
+  document.getElementById("kbdMode").style.display =
+    document.getElementById("kbdToggle").checked ? "block" : "none";
+}
 
-  if (mode === "range") {
-    // Вирівнювання в 2 октави (1 → 1°°)
-    output = input.replace(/(\d)(°°)/g, (m, d) => {
-      return d === "1" ? "1°°" : d + "°";
-    });
+const keyboardMaps = {
+  "2oct": {
+    "1": "A", "2": "S", "3": "D", "4": "F", "5": "G", "6": "H", "7": "J",
+    "1°": "Q", "2°": "W", "3°": "E", "4°": "R", "5°": "T", "6°": "Y", "7°": "U",
+    "1°°": "I"
+  },
+  "3oct": {
+    "1_": "Z", "2_": "X", "3_": "C", "4_": "V", "5_": "B", "6_": "N", "7_": "M",
+    "1": "A", "2": "S", "3": "D", "4": "F", "5": "G", "6": "H", "7": "J",
+    "1°": "Q", "2°": "W", "3°": "E", "4°": "R", "5°": "T", "6°": "Y", "7°": "U",
+    "1°°": "I"
   }
+};
 
+function convert() {
+  let text = document.getElementById("input").value;
+
+  // octave down
   if (mode === "down") {
-    // Октава вниз
-    output = input.replace(/(\d)(°*)/g, (m, d, deg) => {
-      if (deg.length > 0) {
-        return d + deg.slice(1);
-      }
+    text = text.replace(/(\d)(°*)/g, (m, d, deg) => {
+      if (deg.length > 0) return d + deg.slice(1);
       return d + "_";
     });
   }
 
-  document.getElementById("output").value = output;
+  // keyboard mapping
+  if (document.getElementById("kbdToggle").checked) {
+    const map = keyboardMaps[document.getElementById("kbdMode").value];
+    text = text.replace(/(\d(?:°°|°|_)?)/g, m => map[m] ?? m);
+  }
+
+  document.getElementById("output").value = text;
 }
 
 function copyResult() {
