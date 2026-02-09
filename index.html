@@ -74,7 +74,10 @@
 <h2>🎵 Heartopia Tab Converter</h2>
 
 <div class="tabs">
-  <button id="tab-range" class="active" onclick="setMode('range')">
+  <button id="tab-normal" class="active" onclick="setMode('normal')">
+    normal
+  </button>
+  <button id="tab-range" onclick="setMode('range')">
     2 octaves
   </button>
   <button id="tab-down" onclick="setMode('down')">
@@ -102,12 +105,14 @@
 <textarea id="output" placeholder="Result" readonly></textarea>
 
 <script>
-let mode = "range";
+let mode = "normal";
 
 function setMode(newMode) {
   mode = newMode;
-  document.getElementById("tab-range").classList.toggle("active", mode === "range");
-  document.getElementById("tab-down").classList.toggle("active", mode === "down");
+  ["normal", "range", "down"].forEach(m => {
+    document.getElementById("tab-" + m)
+      .classList.toggle("active", mode === m);
+  });
 }
 
 function toggleKeyboard() {
@@ -133,10 +138,10 @@ const keyboardMaps = {
 function convert() {
   let text = document.getElementById("input").value;
 
-  /* ✅ STEP 1: завжди міняємо * → ° */
+  /* ✅ STEP 1: * → ° */
   text = text.replace(/\*/g, "°");
 
-  /* ✅ STEP 2: octave down */
+  /* ✅ STEP 2: octave logic */
   if (mode === "down") {
     text = text.replace(/(\d)(°*)/g, (m, d, deg) => {
       if (deg.length > 0) return d + deg.slice(1);
@@ -144,7 +149,9 @@ function convert() {
     });
   }
 
-  /* ✅ STEP 3: keyboard conversion */
+  /* normal + range = без зміщень */
+
+  /* ✅ STEP 3: keyboard */
   if (document.getElementById("kbdToggle").checked) {
     const map = keyboardMaps[document.getElementById("kbdMode").value];
     text = text.replace(/(\d(?:°°|°|_)?)/g, m => map[m] ?? m);
