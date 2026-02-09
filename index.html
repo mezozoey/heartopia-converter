@@ -13,10 +13,6 @@
     margin: auto;
   }
 
-  h2 {
-    margin-bottom: 10px;
-  }
-
   textarea {
     width: 100%;
     min-height: 220px;
@@ -59,10 +55,6 @@
     border: none;
     background: #444;
     color: white;
-  }
-
-  button:hover {
-    opacity: 0.9;
   }
 
   label {
@@ -123,6 +115,7 @@ function toggleKeyboard() {
     document.getElementById("kbdToggle").checked ? "block" : "none";
 }
 
+/* 🎹 keyboard mappings */
 const keyboardMaps = {
   "2oct": {
     "1": "A", "2": "S", "3": "D", "4": "F", "5": "G", "6": "H", "7": "J",
@@ -140,7 +133,10 @@ const keyboardMaps = {
 function convert() {
   let text = document.getElementById("input").value;
 
-  // octave down
+  /* ✅ STEP 1: завжди міняємо * → ° */
+  text = text.replace(/\*/g, "°");
+
+  /* ✅ STEP 2: octave down */
   if (mode === "down") {
     text = text.replace(/(\d)(°*)/g, (m, d, deg) => {
       if (deg.length > 0) return d + deg.slice(1);
@@ -148,7 +144,7 @@ function convert() {
     });
   }
 
-  // keyboard mapping
+  /* ✅ STEP 3: keyboard conversion */
   if (document.getElementById("kbdToggle").checked) {
     const map = keyboardMaps[document.getElementById("kbdMode").value];
     text = text.replace(/(\d(?:°°|°|_)?)/g, m => map[m] ?? m);
