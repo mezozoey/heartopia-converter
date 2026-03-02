@@ -138,8 +138,10 @@ const keyboardMaps = {
 function convert() {
   let text = document.getElementById("input").value;
 
-  /* ✅ STEP 1: * → ° */
-  text = text.replace(/\*/g, "°");
+  /* ✅ STEP 1: нормалізація символів */
+  text = text
+    .replace(/\*/g, "°")   // зірочка → °
+    .replace(/º/g, "°");   // інший градус → °
 
   /* ✅ STEP 2: octave logic */
   if (mode === "down") {
@@ -151,7 +153,7 @@ function convert() {
 
   /* normal + range = без зміщень */
 
-  /* ✅ STEP 3: keyboard */
+  /* ✅ STEP 3: keyboard mapping */
   if (document.getElementById("kbdToggle").checked) {
     const map = keyboardMaps[document.getElementById("kbdMode").value];
     text = text.replace(/(\d(?:°°|°|_)?)/g, m => map[m] ?? m);
