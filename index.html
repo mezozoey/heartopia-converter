@@ -27,6 +27,7 @@
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
   }
 
   .tabs button {
@@ -46,6 +47,7 @@
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
   }
 
   button {
@@ -77,16 +79,18 @@
   <button id="tab-normal" class="active" onclick="setMode('normal')">normal</button>
   <button id="tab-range" onclick="setMode('range')">2 octaves</button>
   <button id="tab-down" onclick="setMode('down')">1 octave down</button>
+  <button id="tab-note" onclick="setMode('note')">Music notation</button>
 </div>
 
-<textarea id="input" placeholder="Enter your tabs here"></textarea>
+<textarea id="input" placeholder="Enter tabs or notes here"></textarea>
 
 <div class="actions">
   <button onclick="convert()">Convert</button>
   <button onclick="copyResult()">Copy result</button>
 </div>
 
-<label>
+<!-- Keyboard for tabs -->
+<label id="kbdSection">
   <input type="checkbox" id="kbdToggle" onchange="toggleKeyboard()">
   Convert to computer keyboard
 </label>
@@ -96,6 +100,16 @@
   <option value="3oct">3 octaves (piano 22key)</option>
 </select>
 
+<!-- Octave selector for note mode -->
+<label id="noteOctaveLabel" style="display:none;">
+  Octave:
+  <select id="noteOctave">
+    <option value="1">1st</option>
+    <option value="2">2nd</option>
+    <option value="3">3rd</option>
+  </select>
+</label>
+
 <textarea id="output" placeholder="Result" readonly></textarea>
 
 <script>
@@ -103,10 +117,18 @@ let mode = "normal";
 
 function setMode(newMode) {
   mode = newMode;
-  ["normal","range","down"].forEach(m => {
-    document.getElementById("tab-" + m)
-      .classList.toggle("active", mode === m);
+
+  ["normal","range","down","note"].forEach(m => {
+    const el = document.getElementById("tab-" + m);
+    if (el) el.classList.toggle("active", mode === m);
   });
+
+  // show/hide sections
+  document.getElementById("kbdSection").style.display =
+    mode === "note" ? "none" : "block";
+
+  document.getElementById("noteOctaveLabel").style.display =
+    mode === "note" ? "block" : "none";
 }
 
 function toggleKeyboard() {
@@ -114,36 +136,73 @@ function toggleKeyboard() {
     document.getElementById("kbdToggle").checked ? "block" : "none";
 }
 
+/* TAB keyboard maps */
 const keyboardMaps = {
   "2oct": {
-    "1": "A", "2": "S", "3": "D", "4": "F", "5": "G", "6": "H", "7": "J",
-    "1°": "Q", "2°": "W", "3°": "E", "4°": "R", "5°": "T", "6°": "Y", "7°": "U",
-    "1°°": "I"
+    "1": "A","2":"S","3":"D","4":"F","5":"G","6":"H","7":"J",
+    "1°":"Q","2°":"W","3°":"E","4°":"R","5°":"T","6°":"Y","7°":"U",
+    "1°°":"I"
   },
   "3oct": {
-    "1_": "Z", "2_": "X", "3_": "C", "4_": "V", "5_": "B", "6_": "N", "7_": "M",
-    "1": "A", "2": "S", "3": "D", "4": "F", "5": "G", "6": "H", "7": "J",
-    "1°": "Q", "2°": "W", "3°": "E", "4°": "R", "5°": "T", "6°": "Y", "7°": "U",
-    "1°°": "I"
+    "1_":"Z","2_":"X","3_":"C","4_":"V","5_":"B","6_":"N","7_":"M",
+    "1":"A","2":"S","3":"D","4":"F","5":"G","6":"H","7":"J",
+    "1°":"Q","2°":"W","3°":"E","4°":"R","5°":"T","6°":"Y","7°":"U",
+    "1°°":"I"
+  }
+};
+
+/* NOTE keyboard maps */
+const noteMaps = {
+  "1": {
+    "C":",","C#":"L","DB":"L","D":".","D#":";","EB":";","E":"/",
+    "F":"O","F#":"0","GB":"0","G":"P","G#":"-","AB":"-",
+    "A":"[","A#":"=","BB":"=","B":"]"
+  },
+  "2": {
+    "C":"Z","C#":"S","DB":"S","D":"X","D#":"D","EB":"D","E":"C",
+    "F":"V","F#":"G","GB":"G","G":"B","G#":"H","AB":"H",
+    "A":"N","A#":"J","BB":"J","B":"M"
+  },
+  "3": {
+    "C":"Q","C#":"2","DB":"2","D":"W","D#":"3","EB":"3","E":"E",
+    "F":"R","F#":"5","GB":"5","G":"T","G#":"6","AB":"6",
+    "A":"Y","A#":"7","BB":"7","B":"U"
   }
 };
 
 function convert() {
   let text = document.getElementById("input").value;
 
-  /* always normalize symbols */
+  /* NOTE MODE */
+  if (mode === "note") {
+    const octave = document.getElementById("noteOctave").value;
+    const map = noteMaps[octave];
+
+    text = text.replace(/([A-Ga-g])(#|b)?/g, (m, n, accidental) => {
+      let key = n.toUpperCase();
+      if (accidental) {
+        if (accidental === "#") key += "#";
+        if (accidental === "b") key += "B";
+      }
+      return map[key] ?? m;
+    });
+
+    document.getElementById("output").value = text;
+    return;
+  }
+
+  /* NORMAL TAB MODES */
+
   text = text
     .replace(/\*/g, "°")
     .replace(/º/g, "°");
 
-  /* 2 octaves mode */
   if (mode === "range") {
-    text = text.replace(/(\d)°°/g, (m, d) => {
-      return d === "1" ? "1°°" : d + "°";
-    });
+    text = text.replace(/(\d)°°/g, (m, d) =>
+      d === "1" ? "1°°" : d + "°"
+    );
   }
 
-  /* octave down mode */
   if (mode === "down") {
     text = text.replace(/(\d)(°*)/g, (m, d, deg) => {
       if (deg.length > 0) return d + deg.slice(1);
@@ -151,7 +210,6 @@ function convert() {
     });
   }
 
-  /* keyboard mapping */
   if (document.getElementById("kbdToggle").checked) {
     const map = keyboardMaps[document.getElementById("kbdMode").value];
     text = text.replace(/(\d(?:°°|°|_)?)/g, m => map[m] ?? m);
